@@ -63,6 +63,11 @@ public class GameController : MonoBehaviour
     {
         Event e = Event.current;
 
+        if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
+        {
+            Application.Quit();
+        }
+
         if (e.type == EventType.KeyDown && e.keyCode.ToString().Length == 1)
         {
             string pressedLetter = e.keyCode.ToString();
