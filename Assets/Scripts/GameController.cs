@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,14 +9,34 @@ public class GameController : MonoBehaviour
     private Text timeField;
     [SerializeField]
     private Text wordToFindField;
+    [SerializeField]
+    private GameObject[] hangMan = new GameObject[6];
+    [SerializeField]
+    private Text winText;
+    [SerializeField]
+    private Text loseText;
+    [SerializeField]
+    private Text guessedText;
+    [SerializeField]
+    private GameObject replayButton;
+
+
     private float time;
-    private string[] wordsLocal = { "MATT", "JOANNE", "ROBERT", "MARY JANE", "DENIS" };
+    private string words;
+    private List<string> wordsList = new List<string>();
     private string chosenWord;
     private string hiddenWord;
+    private List<string> guesses = new List<string>();
+    private int fails;
+    private bool gameOver = false;
 
     void Start()
     {
-        chosenWord = wordsLocal[Random.Range(0, wordsLocal.Length)];
+        words = Resources.Load<TextAsset>("Words").text;
+        wordsList = words.Split('\n').ToList<string>();
+        chosenWord = wordsList[Random.Range(0, wordsList.Count)].Trim().ToUpper();
+
+        Debug.Log(Application.dataPath);
 
         for (int i = 0; i < chosenWord.Length; i++)
         {
@@ -30,8 +52,11 @@ public class GameController : MonoBehaviour
 
     void Update()
     {
-        time += Time.deltaTime;
-        timeField.text = Mathf.FloorToInt(time).ToString();
+        if (!gameOver)
+        {
+            time += Time.deltaTime;
+            timeField.text = Mathf.FloorToInt(time).ToString();
+        }
     }
 
     void OnGUI()
@@ -41,6 +66,12 @@ public class GameController : MonoBehaviour
         if (e.type == EventType.KeyDown && e.keyCode.ToString().Length == 1)
         {
             string pressedLetter = e.keyCode.ToString();
+
+            if (guesses.Contains(pressedLetter) || hiddenWord.Contains(pressedLetter))
+            {
+                return;
+            }
+
 
             if (chosenWord.Contains(pressedLetter))
             {
@@ -53,6 +84,26 @@ public class GameController : MonoBehaviour
                 }
 
                 wordToFindField.text = hiddenWord;
+            }
+            else
+            {
+                hangMan[fails++].SetActive(true);
+                guesses.Add(pressedLetter);
+                guessedText.text = string.Join(",", guesses);
+
+            }
+
+            if (fails >= hangMan.Length)
+            {
+                loseText.enabled = true;
+                replayButton.SetActive(true);
+                gameOver = true;
+            }
+            if (!hiddenWord.Contains("_"))
+            {
+                winText.enabled = true;
+                replayButton.SetActive(true);
+                gameOver = true;
             }
         }
     }
